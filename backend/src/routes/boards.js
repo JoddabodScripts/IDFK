@@ -8,12 +8,16 @@ router.get('/my', auth, async (req, res) => {
   res.json(boards);
 });
 router.post('/', auth, async (req, res) => {
+  const { name, slug, description } = req.body;
   try {
     const board = await prisma.board.create({
-      data: { name: req.body.name, slug: req.body.slug, description: req.body.description, ownerId: req.user.id }
+      data: { name, slug, description: description || null, ownerId: req.user.id }
     });
     res.json(board);
-  } catch (err) { res.status(400).json({ error: 'Slug taken' }); }
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Slug taken' });
+  }
 });
 router.get('/:slug', async (req, res) => {
   const board = await prisma.board.findUnique({ where: { slug: req.params.slug } });
