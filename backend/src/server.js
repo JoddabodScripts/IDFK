@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Self-ping every 5 seconds for Render
 const BASE = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
