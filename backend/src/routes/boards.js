@@ -8,7 +8,8 @@ router.get('/my', auth, async (req, res) => {
   res.json(boards);
 });
 router.post('/', auth, async (req, res) => {
-  const { name, slug, description } = req.body;
+  const { name, slug, description } = req.body || {};
+  if (!name || !slug) return res.status(400).json({ error: 'name and slug required' });
   try {
     const board = await prisma.board.create({
       data: { name, slug, description: description || null, ownerId: req.user.id }
