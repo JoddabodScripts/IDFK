@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -11,43 +11,49 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
+  boards    Board[]
   createdAt DateTime @default(now())
 }
 
 model Board {
-  id             String   @id @default(uuid())
-  slug           String   @unique
-  name           String
-  description    String?
-  brandingConfig String   @default("{}")
-  ownerId        String
-  createdAt      DateTime @default(now())
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  description     String?
+  ownerId         String
+  owner           User     @relation(fields: [ownerId], references: [id])
+  brandingConfig  String   @default("{}")
+  posts           Post[]
+  createdAt       DateTime @default(now())
 }
 
 model Post {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   title     String
-  content   String
-  status    String   @default("Stand By")
-  tags      String   @default("[]")
+  content   String?
+  tags      String    @default("[]")
+  status    String    @default("Stand By")
   boardId   String
-  authorId  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  board     Board     @relation(fields: [boardId], references: [id])
+  comments  Comment[]
+  upvotes   Upvote[]
+  createdAt DateTime  @default(now())
 }
 
 model Comment {
   id        String   @id @default(uuid())
   content   String
   postId    String
-  authorId  String?
+  post      Post     @relation(fields: [postId], references: [id])
   createdAt DateTime @default(now())
 }
 
 model Upvote {
   id          String   @id @default(uuid())
   postId      String
-  userId      String?
-  fingerprint String?
+  post        Post     @relation(fields: [postId], references: [id])
+  fingerprint String
   createdAt   DateTime @default(now())
+
+  @@unique([postId, fingerprint])
 }

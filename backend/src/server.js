@@ -1,13 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const crypto = require('crypto');
 const dotenv = require('dotenv');
 require('dotenv').config();
 
-if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = crypto.randomBytes(64).toString('hex');
-  console.log('Auto-generated JWT_SECRET:', process.env.JWT_SECRET);
-}
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
