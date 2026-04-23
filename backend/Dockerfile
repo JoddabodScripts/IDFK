@@ -16,13 +16,11 @@ COPY prisma ./prisma/
 COPY src ./src/
 
 RUN npx prisma generate
-ENV DATABASE_URL="file:/app/data/dev.db"
-RUN mkdir -p /app/data && touch /app/data/dev.db && npx prisma db push
+RUN mkdir -p /app/prisma && touch /app/prisma/dev.db && npx prisma db push --skip-generate
 
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV DATABASE_URL="file:/app/data/dev.db"
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "mkdir -p /app/data && npx prisma db push && node src/server.js"]
+CMD ["sh", "-c", "mkdir -p /app/prisma && npx prisma db push --skip-generate && node src/server.js"]
