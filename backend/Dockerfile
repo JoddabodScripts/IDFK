@@ -22,4 +22,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["node", "src/server.js"]
+CMD ["sh", "-c", "mkdir -p /app/prisma && if [ ! -f /app/prisma/dev.db ]; then touch /app/prisma/dev.db && npx prisma db push --skip-generate; fi && node src/server.js"]
