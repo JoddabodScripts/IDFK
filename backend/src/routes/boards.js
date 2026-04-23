@@ -136,12 +136,12 @@ postRouter.post('/', async (req, res) => {
       title: req.body.title,
       content: req.body.content,
       tags: JSON.stringify(req.body.tags || []),
-      status: 'Stand By',
+      status: req.body.status || 'Stand By',
       boardId,
       createdAt: new Date().toISOString(),
     });
     
-    const post = { id: postRef.id, title: req.body.title, content: req.body.content, tags: '[]', status: 'Stand By', boardId };
+    const post = { id: postRef.id, title: req.body.title, content: req.body.content, tags: '[]', status: req.body.status || 'Stand By', boardId };
     res.json(post);
   } catch (err) {
     console.error(err);
