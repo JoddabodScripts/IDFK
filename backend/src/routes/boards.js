@@ -53,6 +53,19 @@ postRouter.post('/:id/upvote', async (req, res) => {
   await prisma.upvote.create({ data: { postId: req.params.id, fingerprint: req.body.fingerprint } });
   res.json({ upvoted: true });
 });
+postRouter.get('/:id', async (req, res) => {
+  const post = await prisma.post.findUnique({ where: { id: req.params.id } });
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  res.json(post);
+});
+postRouter.patch('/:id/status', auth, async (req, res) => {
+  const post = await prisma.post.findUnique({ where: { id: req.params.id } });
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  const board = await prisma.board.findUnique({ where: { id: post.boardId } });
+  if (board.ownerId !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+  const updated = await prisma.post.update({ where: { id: req.params.id }, data: { status: req.body.status } });
+  res.json(updated);
+});
 postRouter.post('/:id/comments', async (req, res) => {
   const comment = await prisma.comment.create({ data: { content: req.body.content, postId: req.params.id } });
   res.json(comment);
