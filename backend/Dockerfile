@@ -16,11 +16,10 @@ COPY prisma ./prisma/
 COPY src ./src/
 
 RUN npx prisma generate
-RUN mkdir -p /app/prisma && touch /app/prisma/dev.db && npx prisma db push --skip-generate
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "mkdir -p /app/prisma && npx prisma db push --skip-generate && node src/server.js"]
+CMD ["node", "src/server.js"]
