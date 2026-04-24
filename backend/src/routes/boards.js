@@ -209,7 +209,28 @@ postRouter.post('/:id/upvote', async (req, res) => {
       fingerprint: req.body.fingerprint,
       createdAt: new Date().toISOString(),
     });
+    
+    const postsRef = db.collection('posts');
+    const postDoc = await postsRef.doc(req.params.id).get();
+    if (postDoc.exists) {
+      const current = postDoc.data().upvotes || 0;
+      await postDoc.ref.update({ upvotes: current + 1 });
+    }
+    
     res.json({ upvoted: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+postRouter.get('/:id/comments', async (req, res) => {
+  try {
+    const db = getDb();
+    const commentsRef = db.collection('comments');
+    const snapshot = await commentsRef.where('postId', '==', req.params.id).get();
+    const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(comments);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
