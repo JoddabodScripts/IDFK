@@ -133,16 +133,19 @@ postRouter.post('/', async (req, res) => {
     const postsRef = db.collection('posts');
     const postRef = postsRef.doc();
     
+    const userId = req.headers.authorization ? req.user?.id : null;
+    
     await postRef.set({
       title: req.body.title,
       content: req.body.content,
       tags: JSON.stringify(req.body.tags || []),
       status: 'Stand By',
       boardId,
+      userId,
       createdAt: new Date().toISOString(),
     });
     
-    const post = { id: postRef.id, title: req.body.title, content: req.body.content, tags: '[]', status: 'Stand By', boardId };
+    const post = { id: postRef.id, title: req.body.title, content: req.body.content, tags: '[]', status: 'Stand By', boardId, userId };
     res.json(post);
   } catch (err) {
     console.error(err);
@@ -224,6 +227,34 @@ postRouter.post('/:id/comments', async (req, res) => {
       createdAt: new Date().toISOString(),
     });
     res.json({ id: commentRef.id, content: req.body.content, postId: req.params.id, createdAt: new Date().toISOString() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+postRouter.delete('/:id', auth, async (req, res) => {
+  try {
+    const db = getDb();
+    const postsRef = db.collection('posts');
+    const postDoc = await postsRef.doc(req.params.id).get();
+    
+    if (!postDoc.exists) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    const post = postDoc.data();
+    
+    const boardsRef = db.collection('boards');
+    const boardSnapshot = await boardsRef.doc(post.boardId).get();
+    const board = boardSnapshot.data();
+    
+    if (board.ownerId !== req.user.id && post.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    await postsRef.doc(req.params.id).delete();
+    res.json({ deleted: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

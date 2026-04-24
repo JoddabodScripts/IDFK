@@ -60,4 +60,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/me', auth, async (req, res) => {
+  res.json({ id: req.user.id, email: req.user.email });
+});
+
 module.exports = router;
