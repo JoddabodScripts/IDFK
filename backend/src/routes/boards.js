@@ -132,7 +132,16 @@ postRouter.get('/', async (req, res) => {
   try {
     const db = getDb();
     const boardsRef = db.collection('boards');
-    const snapshot = await boardsRef.where('slug', '==', req.params.slug).limit(1).get();
+    const slugParam = req.params.slug;
+    const slugLower = slugParam.toLowerCase();
+    
+    let snapshot = await boardsRef.where('slug', '==', slugParam).limit(1).get();
+    if (snapshot.empty) {
+      snapshot = await boardsRef.where('slug', '==', slugLower).limit(1).get();
+    }
+    if (snapshot.empty) {
+      snapshot = await boardsRef.where('slugLower', '==', slugLower).limit(1).get();
+    }
     
     if (snapshot.empty) {
       return res.status(404).json({ error: 'Board not found' });
@@ -142,7 +151,9 @@ postRouter.get('/', async (req, res) => {
     const postsRef = db.collection('posts');
     const postsSnapshot = await postsRef.where('boardId', '==', boardId).get();
     let posts = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (posts.length > 0) {
+      posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
     
     res.json(posts);
   } catch (err) {
