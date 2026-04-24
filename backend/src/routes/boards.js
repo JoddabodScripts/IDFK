@@ -207,9 +207,20 @@ postRouter.post('/:id/upvote', async (req, res) => {
   try {
     const db = getDb();
     const upvotesRef = db.collection('upvotes');
+    const fingerprint = req.body.fingerprint;
+    
+    const existing = await upvotesRef.where('postId', '==', req.params.id)
+      .where('fingerprint', '==', fingerprint)
+      .limit(1)
+      .get();
+    
+    if (!existing.empty) {
+      return res.json({ upvoted: true, already: true });
+    }
+    
     await upvotesRef.add({
       postId: req.params.id,
-      fingerprint: req.body.fingerprint,
+      fingerprint,
       createdAt: new Date().toISOString(),
     });
     
