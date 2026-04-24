@@ -56,10 +56,14 @@ router.get('/:slug', async (req, res) => {
     const db = getDb();
     const boardsRef = db.collection('boards');
     const slugParam = req.params.slug;
+    const slugLower = slugParam.toLowerCase();
     
     let snapshot = await boardsRef.where('slug', '==', slugParam).limit(1).get();
     if (snapshot.empty) {
-      snapshot = await boardsRef.where('slugLower', '==', slugParam.toLowerCase()).limit(1).get();
+      snapshot = await boardsRef.where('slug', '==', slugLower).limit(1).get();
+    }
+    if (snapshot.empty) {
+      snapshot = await boardsRef.where('slugLower', '==', slugLower).limit(1).get();
     }
     
     if (snapshot.empty) {
@@ -78,7 +82,16 @@ router.patch('/:slug/settings', auth, async (req, res) => {
   try {
     const db = getDb();
     const boardsRef = db.collection('boards');
-    const snapshot = await boardsRef.where('slug', '==', req.params.slug).limit(1).get();
+    const slugParam = req.params.slug;
+    const slugLower = slugParam.toLowerCase();
+    
+    let snapshot = await boardsRef.where('slug', '==', slugParam).limit(1).get();
+    if (snapshot.empty) {
+      snapshot = await boardsRef.where('slug', '==', slugLower).limit(1).get();
+    }
+    if (snapshot.empty) {
+      snapshot = await boardsRef.where('slugLower', '==', slugLower).limit(1).get();
+    }
     
     if (snapshot.empty) {
       return res.status(404).json({ error: 'Not found' });
