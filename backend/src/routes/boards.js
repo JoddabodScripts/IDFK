@@ -133,7 +133,10 @@ postRouter.post('/', async (req, res) => {
     const postsRef = db.collection('posts');
     const postRef = postsRef.doc();
     
-    const userId = req.headers.authorization ? req.user?.id : null;
+    let userId = null;
+    if (req.headers.authorization && req.user) {
+      userId = req.user.id;
+    }
     
     await postRef.set({
       title: req.body.title,
