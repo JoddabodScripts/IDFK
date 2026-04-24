@@ -58,11 +58,14 @@ router.get('/:slug', async (req, res) => {
     const slugParam = req.params.slug;
     const slugLower = slugParam.toLowerCase();
     
+    // Try exact match first
     let snapshot = await boardsRef.where('slug', '==', slugParam).limit(1).get();
     if (snapshot.empty) {
       snapshot = await boardsRef.where('slug', '==', slugLower).limit(1).get();
     }
+    
     if (snapshot.empty) {
+      // Check slugLower field
       snapshot = await boardsRef.where('slugLower', '==', slugLower).limit(1).get();
     }
     
@@ -70,7 +73,16 @@ router.get('/:slug', async (req, res) => {
       return res.status(404).json({ error: 'Not found' });
     }
     
-    const board = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+    const boardDoc = snapshot.docs[0];
+    const boardData = boardDoc.data();
+    
+    // Add slugLower if missing
+    if (!boardData.slugLower) {
+      await boardDoc.ref.update({ slugLower: boardData.slug.toLowerCase() });
+      boardData.slugLower = boardData.slug.toLowerCase();
+    }
+    
+    const board = { id: boardDoc.id, ...boardData };
     res.json(board);
   } catch (err) {
     console.error(err);
