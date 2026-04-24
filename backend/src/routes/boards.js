@@ -19,7 +19,8 @@ router.post('/', auth, async (req, res) => {
     const db = getDb();
     const boardsRef = db.collection('boards');
     
-    const existing = await boardsRef.where('slug', '==', slug).limit(1).get();
+    const slugLower = slug.toLowerCase();
+    const existing = await boardsRef.where('slug', 'in', [slug, slugLower]).get();
     if (!existing.empty) {
       return res.status(400).json({ error: 'Slug taken' });
     }
@@ -28,6 +29,7 @@ router.post('/', auth, async (req, res) => {
     await boardRef.set({
       name,
       slug,
+      slugLower,
       description: description || null,
       brandingConfig: JSON.stringify({
         accentColor: '#6366f1',
@@ -53,7 +55,12 @@ router.get('/:slug', async (req, res) => {
   try {
     const db = getDb();
     const boardsRef = db.collection('boards');
-    const snapshot = await boardsRef.where('slug', '==', req.params.slug).limit(1).get();
+    const slugParam = req.params.slug;
+    
+    let snapshot = await boardsRef.where('slug', '==', slugParam).limit(1).get();
+    if (snapshot.empty) {
+      snapshot = await boardsRef.where('slugLower', '==', slugParam.toLowerCase()).limit(1).get();
+    }
     
     if (snapshot.empty) {
       return res.status(404).json({ error: 'Not found' });
