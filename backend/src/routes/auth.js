@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getDb } = require('../lib/firebase');
+const auth = require('../middleware/auth');
 
 router.post('/register', async (req, res) => {
   try {
