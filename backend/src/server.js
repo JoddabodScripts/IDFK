@@ -20,9 +20,19 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+const keepAlive = () => {
+  const baseUrl = process.env.KEEP_ALIVE_URL || 'https://idfk-23ot.onrender.com';
+  setInterval(() => {
+    fetch(`${baseUrl}/health`)
+      .then(() => console.log('[keep-alive] ping'))
+      .catch(() => console.log('[keep-alive] skip'));
+  }, 5000);
+};
+
 app.use('/auth', require('./routes/auth'));
 app.use('/boards', require('./routes/boards'));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  keepAlive();
 });
